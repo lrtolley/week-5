@@ -1,7 +1,5 @@
 import plotly.express as px
 import pandas as pd
-#import plotly.io as pio
-#pio.renderers.default = 'iframe'
 
 # update/add code below ...
 
@@ -12,13 +10,30 @@ def survival_demographics():
     bins = [0, 12, 19, 59, 1000]
     labels = ['Child', 'Teen', 'Adult', 'Senior']
     titanic_df['Age Group'] = pd.cut(titanic_df['Age'], bins=bins, labels=labels, include_lowest=True)
+    # Compute number of survivors and total passengers per class/age-group
+    agg = titanic_df.groupby(['Pclass', 'Age Group'])['Survived'].agg(['sum', 'count']).reset_index()
+    agg = agg.rename(columns={'sum': 'n_survived', 'count': 'n_total'})
 
-fig = px.histogram(titanic_df, 
-                   x='Age', 
-                   color='Survived',
-                   template='plotly_white',
-                   color_discrete_sequence=px.colors.qualitative.D3
-                  )
-fig.update_layout(title='Titanic Age Distribution by Survival Status',)
-fig.show()
+    # Calculate survival rate as percentage (0-100)
+    agg['survival_rate'] = (agg['n_survived'] / agg['n_total']) * 100
+
+    # Create a Plotly bar chart showing survival_rate by Age Group, colored by Pclass
+    fig = px.bar(
+        agg,
+        x='Age Group',
+        y='survival_rate',
+        color='Pclass',
+        barmode='group',
+        labels={'survival_rate': 'Survival Rate (%)'},
+        title='Titanic Survival Rate by Class and Age Group'
+    )
+
+    # Return both the aggregated table and the figure for flexibility
+    return agg, fig
+
+
+if __name__ == '__main__':
+    # When run directly, print the table
+    table, _ = survival_demographics()
+    print(table.to_string(index=False))
 
