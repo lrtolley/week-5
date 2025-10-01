@@ -1,39 +1,69 @@
 import plotly.express as px
 import pandas as pd
 
-# update/add code below ...
+# Module-level cached dataset
+_TITANIC_URL = 'https://raw.githubusercontent.com/leontoddjohnson/datasets/main/data/titanic.csv'
+_titanic_df = pd.read_csv(_TITANIC_URL)
 
-titanic_df = pd.read_csv('https://raw.githubusercontent.com/leontoddjohnson/datasets/main/data/titanic.csv')
 
 def survival_demographics():
-    ''' Defined a function to analyze survival demographics on the Titanic. '''
+    """Return (agg_df, fig) where agg_df groups by Pclass, Sex, Age Group and
+    contains n_survived, n_total, survival_rate (percentage).
+
+    fig is a Plotly Figure (grouped bar, colored by Sex, faceted by Pclass).
+    """
+    df = _titanic_df.copy()
     bins = [0, 12, 19, 59, 1000]
     labels = ['Child', 'Teen', 'Adult', 'Senior']
-    titanic_df['Age Group'] = pd.cut(titanic_df['Age'], bins=bins, labels=labels, include_lowest=True)
-    # Compute number of survivors and total passengers per class/age-group
-    agg = titanic_df.groupby(['Pclass', 'Age Group'])['Survived'].agg(['sum', 'count']).reset_index()
-    agg = agg.rename(columns={'sum': 'n_survived', 'count': 'n_total'})
+    df['Age Group'] = pd.cut(df['Age'], bins=bins, labels=labels, include_lowest=True)
 
-    # Calculate survival rate as percentage (0-100)
+    agg = df.groupby(['Pclass', 'Sex', 'Age Group'])['Survived'].agg(['sum', 'count']).reset_index()
+    agg = agg.rename(columns={'sum': 'n_survived', 'count': 'n_total'})
     agg['survival_rate'] = (agg['n_survived'] / agg['n_total']) * 100
 
-    # Create a Plotly bar chart showing survival_rate by Age Group, colored by Pclass
+    # Sort rows for consistent display
+    agg = agg.sort_values(['Sex', 'Pclass', 'Age Group']).reset_index(drop=True)
+
     fig = px.bar(
         agg,
         x='Age Group',
         y='survival_rate',
-        color='Pclass',
+        color='Sex',
+        facet_col='Pclass',
         barmode='group',
         labels={'survival_rate': 'Survival Rate (%)'},
-        title='Titanic Survival Rate by Class and Age Group'
+        title='Titanic Survival Rate by Class, Sex and Age Group'
     )
 
-    # Return both the aggregated table and the figure for flexibility
     return agg, fig
 
 
-if __name__ == '__main__':
-    # When run directly, print the table
-    table, _ = survival_demographics()
-    print(table.to_string(index=False))
+def family_size():
+    """Return (family_data, avg_fare, min_fare, max_fare, n_passengers, fig)."""
+    df = _titanic_df.copy()
+    df['Family Size'] = df['SibSp'] + df['Parch'] + 1
+    avg_fare = df['Fare'].mean()
+    min_fare = df['Fare'].min()
+    max_fare = df['Fare'].max()
+    n_passengers = df['PassengerId'].count()
 
+    family_data = df[['Family Size', 'Pclass', 'Fare']]
+    fig = px.histogram(family_data, x='Family Size', title='Distribution of Family Sizes')
+
+    return family_data, avg_fare, min_fare, max_fare, n_passengers, fig
+
+
+def last_names():
+    """Return a DataFrame with last name counts: columns LastName, Count."""
+    df = _titanic_df.copy()
+    names = df['Name'].dropna().astype(str)
+    last_names = names.str.split(',', n=1).str[0].str.strip()
+    counts = last_names.value_counts().reset_index()
+    counts.columns = ['LastName', 'Count']
+    return counts
+
+
+if __name__ == '__main__':
+    # Quick CLI demo when run directly
+    agg, fig = survival_demographics()
+    print(agg.to_string(index=False))
