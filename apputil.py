@@ -38,19 +38,22 @@ def survival_demographics():
     return agg, fig
 
 
-def family_size():
-    """Return (family_data, avg_fare, min_fare, max_fare, n_passengers, fig)."""
+def family_groups():
+    """Return aggregated DataFrame grouped by Family Size and Pclass."""
     df = titanic_df.copy()
     df['Family Size'] = df['SibSp'] + df['Parch'] + 1
-    avg_fare = df['Fare'].mean()
-    min_fare = df['Fare'].min()
-    max_fare = df['Fare'].max()
-    n_passengers = df['PassengerId'].count()
 
-    family_data = df[['Family Size', 'Pclass', 'Fare']]
-    fig = px.histogram(family_data, x='Family Size', title='Distribution of Family Sizes')
+    grouped = df.groupby(['Family Size', 'Pclass'])['Fare'].agg(
+        n_passengers='count',
+        avg_fare='mean',
+        min_fare='min',
+        max_fare='max'
+    ).reset_index()
 
-    return family_data, avg_fare, min_fare, max_fare, n_passengers, fig
+    # Sort by Pclass then Family Size
+    grouped = grouped.sort_values(['Pclass', 'Family Size']).reset_index(drop=True)
+    return grouped
+
 
 
 def last_names():
