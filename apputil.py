@@ -7,66 +7,8 @@ titanic_df = pd.read_csv(TITANIC_URL)
 
 
 def survival_demographics():
-    """Return (agg_df, fig) where agg_df groups by Pclass, Sex, Age Group and
-    contains n_survived, n_total, survival_rate (percentage).
-
-    fig is a Plotly Figure (grouped bar, colored by Sex, faceted by Pclass).
-    """
-    df = titanic_df.copy()
-    bins = [0, 12, 19, 59, 1000]
-    labels = ['Child', 'Teen', 'Adult', 'Senior']
-    df['Age Group'] = pd.cut(df['Age'], bins=bins, labels=labels, include_lowest=True)
-
-    agg = df.groupby(['Pclass', 'Sex', 'Age Group'])['Survived'].agg(['sum', 'count']).reset_index()
-    agg = agg.rename(columns={'sum': 'n_survived', 'count': 'n_total'})
-    agg['survival_rate'] = (agg['n_survived'] / agg['n_total']) * 100
-
-    # Sort rows for consistent display
-    agg = agg.sort_values(['Sex', 'Pclass', 'Age Group']).reset_index(drop=True)
-
-    fig = px.bar(
-        agg,
-        x='Age Group',
-        y='survival_rate',
-        color='Sex',
-        facet_col='Pclass',
-        barmode='group',
-        labels={'survival_rate': 'Survival Rate (%)'},
-        title='Titanic Survival Rate by Class, Sex and Age Group'
-    )
-
-    return agg, fig
-
-
+    
 def family_groups():
-    """Return aggregated DataFrame grouped by Family Size and Pclass."""
-    df = titanic_df.copy()
-    df['Family Size'] = df['SibSp'] + df['Parch'] + 1
-
-    grouped = df.groupby(['Family Size', 'Pclass'])['Fare'].agg(
-        n_passengers='count',
-        avg_fare='mean',
-        min_fare='min',
-        max_fare='max'
-    ).reset_index()
-
-    # Sort by Pclass then Family Size
-    grouped = grouped.sort_values(['Pclass', 'Family Size']).reset_index(drop=True)
-    return grouped
-
-
-
+   
 def last_names():
-    """Return a DataFrame with last name counts: columns LastName, Count."""
-    df = titanic_df.copy()
-    names = df['Name'].dropna().astype(str)
-    last_names = names.str.split(',', n=1).str[0].str.strip()
-    counts = last_names.value_counts().reset_index()
-    counts.columns = ['LastName', 'Count']
-    return counts
-
-
-if __name__ == '__main__':
-    # Quick CLI demo when run directly
-    agg, fig = survival_demographics()
-    print(agg.to_string(index=False))
+   
