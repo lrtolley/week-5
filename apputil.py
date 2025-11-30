@@ -9,8 +9,8 @@ def survival_demographics():
       ''' Defining a function to analyze survival demographics on the Titanic. '''
       bins = [0, 12, 19, 59, 1000]
       labels = ['Child', 'Teen', 'Adult', 'Senior']
-      titanic_df['Age Group'] = pd.cut(titanic_df['Age'], bins=bins, labels=labels, include_lowest=True)
-      grouped_titanic = titanic_df.groupby(['Pclass', 'Age Group', 'Sex']).agg(n_passengers = ('PassengerId', 'count'), n_survivors =('Survived', 'sum'))
+      titanic_df['age_group'] = pd.cut(titanic_df['Age'], bins=bins, labels=labels, include_lowest=True)
+      grouped_titanic = titanic_df.groupby(['pclass', 'age_group', 'sex']).agg(n_passengers = ('PassengerId', 'count'), n_survivors =('Survived', 'sum'))
       grouped_titanic['survival_rate'] = (grouped_titanic['n_survivors'] / grouped_titanic['n_passengers']) * 100
     
       return grouped_titanic
@@ -24,6 +24,7 @@ def family_groups():
 
 def last_names():
       titanic_df['last_name'] = titanic_df['Name'].str.split(',').str[0]
-      titanic_df_lastname_count = titanic_df.groupby(['last_name']).agg(last_names = ('last_name', 'count'))
+      titanic_lastname_count = titanic_df.groupby(['last_name']).agg(last_names = ('last_name', 'count'))
+      titanic_lastname_count_df = pd.DataFrame(titanic_lastname_count)
       
-      return titanic_df_lastname_count
+      return titanic_lastname_count_df
