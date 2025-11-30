@@ -2,61 +2,29 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from apputil import survival_demographics, last_names
+from apputil import survival_demographics, family_groups, last_names
 
 # Load Titanic dataset
 titanic_df = pd.read_csv('https://raw.githubusercontent.com/leontoddjohnson/datasets/main/data/titanic.csv')
 
 st.write("Was the survival rate on the Titanic for children similar among classes?")
+
 def visualize_demographic():
-    '''
-    # Titanic Visualization - How child and teen survival rates varied by class
-    '''
-    agg, fig = survival_demographics()
-    st.plotly_chart(fig)
-visualize_demographic()
+    '''Making a bar graph to visualize survival of titanic's child and teen passengers.'''
+    survival_demographicsdf = survival_demographics()
+    survival_demographicsdf = survival_demographicsdf.reset_index()
+    barchartsurvival = px.bar(survival_demographicsdf, x = 'Pclass' , y = 'survival_rate', color = 'Sex',barmode = 'group', facet_col = 'Age Group', title = 'survival rate by age group')
+    
+    return barchartsurvival  
 
 st.write("Were there any people with a unique last name that were a part of a family group on the Titanic?")
-last_names_count_df = last_names()
-print(last_names_count_df.sort_values(by='Count', ascending=False).head())
 
 def visualize_families():
-    """
-    Return a DataFrame and Plotly bar chart showing whether any passengers
-    with a unique last name were part of a family group (Family Size > 1).
-    """
-    df = titanic_df.copy()
-
-    # Step 1: Extract last names
-    df['LastName'] = df['Name'].dropna().astype(str).str.split(',', n=1).str[0].str.strip()
-
-    # Step 2: Count last name occurrences
-    last_name_counts = df['LastName'].value_counts()
-
-    # Step 3: Mark unique last names
-    df['UniqueLastName'] = df['LastName'].map(last_name_counts) == 1
-
-    # Step 4: Compute family size
-    df['Family Size'] = df['SibSp'] + df['Parch'] + 1
-    df['InFamilyGroup'] = df['Family Size'] > 1
-
-    # Step 5: Cross-tabulate
-    summary = df.groupby(['UniqueLastName', 'InFamilyGroup']).size().reset_index(name='Count')
-
-    # Step 6: Plot
-    fig = px.bar(
-        summary,
-        x='UniqueLastName',
-        y='Count',
-        color='InFamilyGroup',
-        barmode='group',
-        labels={
-            'UniqueLastName': 'Has Unique Last Name',
-            'InFamilyGroup': 'In Family Group',
-            'Count': 'Number of Passengers'
-        },
-        title='Passengers with Unique Last Names in Family Groups'
-    )
-
-    return summary, fig
-
+    family_groupsdf = family_groups()
+    family_groupsdf = family_groupsdf.reset_index()
+    last_namesdf = last_names()
+    last_namesdf = last_namesdf.reset_index()
+    joint_df = pd.merge(titanic_df, last_namesdf, on = 'last_name', how = 'outer')
+    barchartoffamilies = px.bar(joint_df, x = 'family_size' , y = 'last_names', barmode = 'overlay', color = 'last_name', text = 'last_name', title = 'lesse') 
+    
+    return barchartoffamilies
