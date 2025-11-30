@@ -25,6 +25,6 @@ def family_groups():
 def last_names():
       titanic_df['last_name'] = titanic_df['Name'].str.split(',').str[0]
       titanic_lastname_count = titanic_df.groupby(['last_name']).agg(last_names = ('last_name', 'count'))
-      titanic_lastname_count_df = pd.DataFrame(titanic_lastname_count)
+      titanic_lastname_count_df = pd.Series(titanic_lastname_count)
       
       return titanic_lastname_count_df
