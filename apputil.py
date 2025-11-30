@@ -10,7 +10,7 @@ def survival_demographics():
       bins = [0, 12, 19, 59, 1000]
       labels = ['Child', 'Teen', 'Adult', 'Senior']
       titanic_df['age_group'] = pd.cut(titanic_df['Age'], bins=bins, labels=labels, include_lowest=True)
-      grouped_titanic = titanic_df.groupby(['Pclass', 'age_group', 'Sex']).agg(n_passengers = ('PassengerId', 'count'), n_survivors =('Survived', 'sum'))
+      grouped_titanic = titanic_df.groupby(['Pclass', 'age_group', 'Sex'] observed=False).agg(n_passengers = ('PassengerId', 'count'), n_survivors =('Survived', 'sum'))
       grouped_titanic['survival_rate'] = (grouped_titanic['n_survivors'] / grouped_titanic['n_passengers']) * 100
     
       return grouped_titanic
